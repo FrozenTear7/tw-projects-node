@@ -1,4 +1,6 @@
-var Fork = function () {
+let conductorCounter = 0
+
+const Fork = function () {
   this.state = 0
   return this
 }
@@ -20,7 +22,7 @@ Fork.prototype.release = function () {
   this.state = 0
 }
 
-var Philosopher = function (id, forks) {
+const Philosopher = function (id, forks) {
   this.id = id
   this.forks = forks
   this.gotForks = 0
@@ -30,7 +32,7 @@ var Philosopher = function (id, forks) {
 }
 
 Philosopher.prototype.startNaive = function (count) {
-  var forks = this.forks, f1 = this.f1, f2 = this.f2, id = this.id
+  const forks = this.forks, f1 = this.f1, f2 = this.f2, id = this.id
 
   const action = () => {
     if (this.gotForks === 2) {
@@ -40,18 +42,20 @@ Philosopher.prototype.startNaive = function (count) {
         forks[f2].release()
         this.gotForks = 0
         this.startNaive(count - 1)
-      }, 2000)
+      }, Math.random() * 3000)
     }
   }
 
-  if (count > 0) {
-    forks[f1].acquire(1, this, action)
-    forks[f2].acquire(1, this, action)
-  }
+  setTimeout(() => {
+    if (count > 0) {
+      forks[f1].acquire(1, this, action)
+      forks[f2].acquire(1, this, action)
+    }
+  }, Math.random() * 3000)
 }
 
 Philosopher.prototype.startAsym = function (count) {
-  var forks = this.forks, f1 = this.f1, f2 = this.f2, id = this.id
+  const forks = this.forks, f1 = this.f1, f2 = this.f2, id = this.id
 
   const action = () => {
     if (this.gotForks === 2) {
@@ -65,40 +69,63 @@ Philosopher.prototype.startAsym = function (count) {
     }
   }
 
-  if (count > 0) {
-    if (id % 2 === 0) {
-      forks[f2].acquire(1, this, action)
-      forks[f1].acquire(1, this, action)
-    } else {
-      forks[f1].acquire(1, this, action)
-      forks[f2].acquire(1, this, action)
+  setTimeout(() => {
+    if (count > 0) {
+      if (id % 2 === 0) {
+        forks[f2].acquire(1, this, action)
+        forks[f1].acquire(1, this, action)
+      } else {
+        forks[f1].acquire(1, this, action)
+        forks[f2].acquire(1, this, action)
+      }
     }
+  }, Math.random() * 3000)
+}
+
+Philosopher.prototype.startConductor = function (N, count, iter) {
+  const forks = this.forks, f1 = this.f1, f2 = this.f2, id = this.id
+
+  const action = () => {
+    if (this.gotForks === 2) {
+      setTimeout(() => {
+        console.log(id + ' eating')
+        forks[f1].release()
+        forks[f2].release()
+        this.gotForks = 0
+        this.startNaive(count - 1)
+      }, Math.random() * 3000)
+    }
+  }
+
+  if (N % 2 === 1 || conductorCounter < N) {
+    conductorCounter++
+    setTimeout(() => {
+      if (count > 0) {
+        forks[f1].acquire(1, this, action)
+        forks[f2].acquire(1, this, action)
+        conductorCounter--
+      }
+    }, Math.random() * 3000)
+  } else {
+    setTimeout(() => {
+      this.startConductor(N, count, iter + 1)
+    }, 1000 * 2 * iter)
   }
 }
 
-Philosopher.prototype.startConductor = function (count) {
-  var forks = this.forks,
-    f1 = this.f1,
-    f2 = this.f2,
-    id = this.id
-
-  // zaimplementuj rozwiazanie z kelnerem
-  // kazdy filozof powinien 'count' razy wykonywac cykl
-  // podnoszenia widelcow -- jedzenia -- zwalniania widelcow
-}
-
-var N = 5
-var forks = []
-var philosophers = []
-for (var i = 0; i < N; i++) {
+const N = 5
+let forks = []
+let philosophers = []
+for (let i = 0; i < N; i++) {
   forks.push(new Fork())
 }
 
-for (var i = 0; i < N; i++) {
+for (let i = 0; i < N; i++) {
   philosophers.push(new Philosopher(i, forks))
 }
 
-for (var i = 0; i < N; i++) {
+for (let i = 0; i < N; i++) {
   // philosophers[i].startNaive(2)
-  philosophers[i].startAsym(2)
+  // philosophers[i].startAsym(2)
+  philosophers[i].startConductor(N, 2)
 }
