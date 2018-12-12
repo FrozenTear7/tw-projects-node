@@ -66,8 +66,8 @@ Philosopher.prototype.startAsym = function (count) {
                     forks[f1].release()
                     forks[f2].release()
                 } else {
-                    forks[f1].release()
                     forks[f2].release()
+                    forks[f1].release()
                 }
 
                 this.gotForks = 0
@@ -120,7 +120,7 @@ Philosopher.prototype.startConductor = function (N, count, iter) {
     }
 }
 
-const N = 5
+const N = 3
 const times = 2
 let forks = []
 let philosophers = []
@@ -133,7 +133,7 @@ for (let i = 0; i < N; i++) {
 }
 
 for (let i = 0; i < N; i++) {
-    // philosophers[i].startNaive(times)
+    philosophers[i].startNaive(times)
     // philosophers[i].startAsym(times)
-    philosophers[i].startConductor(N, times, 0)
+    // philosophers[i].startConductor(N, times, 0)
 }
